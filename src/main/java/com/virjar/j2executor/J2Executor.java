@@ -29,7 +29,7 @@ public class J2Executor {
      */
     public J2Executor(ThreadPoolExecutor parentThreadPoolExecutor) {
         this.parentThreadPoolExecutor = parentThreadPoolExecutor;
-        parentBlockingQueue = ReflectUtil.getFieldValue(parentThreadPoolExecutor, "workQueue");
+        parentBlockingQueue = parentThreadPoolExecutor.getQueue();
 
         // 替代 reject handler,虽然这个代码几乎不会被执行
         RejectedExecutionHandler originRejectExecutionHandler = parentThreadPoolExecutor.getRejectedExecutionHandler();
