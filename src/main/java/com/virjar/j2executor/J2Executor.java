@@ -55,7 +55,8 @@ public class J2Executor {
                     blockingQueue, new ConsumeImmediatelyBlockingQueue.ImmediatelyConsumer<Runnable>() {
                         @Override
                         public boolean consume(Runnable runnable) {
-                            if (parentBlockingQueue.size() > 0) {
+                            if (parentBlockingQueue.size() > 0 || parentThreadPoolExecutor
+                                    .getActiveCount() >= parentThreadPoolExecutor.getCorePoolSize()) {
                                 return false;
                             }
                             RejectedMonitorRunnable rejectedMonitorRunnable = new RejectedMonitorRunnable(runnable);
