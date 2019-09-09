@@ -1,13 +1,37 @@
-package com.virjar.j2executor;
+package com.multiexecutor.core;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by virjar on 2018/2/25.<br>
- * 通过反射增强线程池功能
+ * @author tanjia
  */
 public class ReflectUtil {
+
+    private static ConcurrentHashMap<String, Cell> fieldCache = new ConcurrentHashMap<>();
+
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    static class Cell {
+        Class targetClass;
+        Field targetField;
+        String fieldName;
+
+        public String getKey() {
+            return targetClass.getSimpleName() + "#" + fieldName;
+        }
+
+        static String generateKey(Object object, String fieldName) {
+            return object.getClass().getSimpleName() + "#" + fieldName;
+        }
+    }
+
     private static void makeAccessible(Field field) {
         if (!Modifier.isPublic(field.getModifiers())) {
             field.setAccessible(true);
@@ -15,10 +39,16 @@ public class ReflectUtil {
     }
 
     private static Field getDeclaredField(Object object, String filedName) {
+        String key = Cell.generateKey(object, filedName);
+        if (fieldCache.containsKey(key)) {
+            return fieldCache.get(key).targetField;
+        }
         for (Class<?> superClass = object.getClass(); superClass != Object.class; superClass = superClass
                 .getSuperclass()) {
             try {
-                return superClass.getDeclaredField(filedName);
+                Field field = superClass.getDeclaredField(filedName);
+                fieldCache.putIfAbsent(key, Cell.builder().targetClass(object.getClass()).targetField(field).fieldName(filedName).build());
+                return field;
             } catch (NoSuchFieldException e) {
                 // Field 不在当前类定义, 继续向上转型
             }

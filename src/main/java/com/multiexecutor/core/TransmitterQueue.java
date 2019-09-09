@@ -1,4 +1,4 @@
-package com.virjar.j2executor;
+package com.multiexecutor.core;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -7,31 +7,31 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Created by virjar on 2018/2/25.<br>
- * 对队列包装增强,当任务被投递的时候,先看一级线程池是否空闲,如果空闲直接往一级线程池投递,同时吞掉该任务
- */
-public class ConsumeImmediatelyBlockingQueue<T> implements BlockingQueue<T> {
+public class TransmitterQueue<T> implements BlockingQueue<T> {
     private BlockingQueue<T> delegate;
-    private ImmediatelyConsumer<T> immediatelyConsumer;
+    private Transmitter<T> transformer;
 
-    public interface ImmediatelyConsumer<T> {
-        boolean consume(T t);
+    public interface Transmitter<T> {
+        boolean accept(T t);
     }
 
-    public ConsumeImmediatelyBlockingQueue(BlockingQueue<T> delegate, ImmediatelyConsumer<T> immediatelyConsumer) {
+    public TransmitterQueue(BlockingQueue<T> delegate, Transmitter<T> transformer) {
         this.delegate = delegate;
-        this.immediatelyConsumer = immediatelyConsumer;
+        this.transformer = transformer;
     }
 
     @Override
     public boolean add(T t) {
-        return immediatelyConsumer.consume(t) || delegate.add(t);
+        return
+                transformer.accept(t) ||
+                delegate.add(t);
     }
 
     @Override
     public boolean offer(T t) {
-        return immediatelyConsumer.consume(t) || delegate.offer(t);
+        return
+                transformer.accept(t) ||
+                delegate.offer(t);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class ConsumeImmediatelyBlockingQueue<T> implements BlockingQueue<T> {
 
     @Override
     public void put(T t) throws InterruptedException {
-        if (immediatelyConsumer.consume(t)) {
+        if (transformer.accept(t)) {
             return;
         }
         delegate.put(t);
@@ -64,7 +64,7 @@ public class ConsumeImmediatelyBlockingQueue<T> implements BlockingQueue<T> {
 
     @Override
     public boolean offer(T t, long timeout, TimeUnit unit) throws InterruptedException {
-        return immediatelyConsumer.consume(t) || delegate.offer(t, timeout, unit);
+        return transformer.accept(t) || delegate.offer(t, timeout, unit);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class ConsumeImmediatelyBlockingQueue<T> implements BlockingQueue<T> {
     public boolean addAll(Collection<? extends T> c) {
         List<T> remain = new LinkedList<>();
         for (T t : c) {
-            if (!immediatelyConsumer.consume(t)) {
+            if (!transformer.accept(t)) {
                 remain.add(t);
             }
         }
