@@ -2,6 +2,7 @@ package com.multiexecutor.core.test;
 
 import com.multiexecutor.core.MultiExecutor;
 import com.multiexecutor.core.MultiRunnable;
+import com.multiexecutor.spi.ContextStarter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,10 @@ public class ThoughThread {
         }
     };
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+
+        ContextStarter.start();
+
         ThreadPoolExecutor pool1 = new ThreadPoolExecutor(20, 30, 1000L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingDeque<Runnable>(),
                 new MultiExecutorTest.PrintLogRejectHandler("1号线程池"));
@@ -50,7 +54,7 @@ public class ThoughThread {
 
         // 启动四个任务,同时往各自线程池丢任务
         for (int i = 0; i < pools.size(); i++) {
-            new Thread(MultiRunnable.getMultiRunnable(new WorkRunnable(pools.get(i), i))).start();
+            new Thread(MultiRunnable.get(new WorkRunnable(pools.get(i), i))).start();
         }
 
     }

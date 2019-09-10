@@ -17,7 +17,10 @@ public class MultiRunnable implements Runnable, Enhanced {
     private boolean rejected = false;
     private final AtomicReference<Object> captureRef;
 
-    public static MultiRunnable getMultiRunnable(Runnable delegate) {
+    public static MultiRunnable get(Runnable delegate) {
+        if (delegate instanceof MultiRunnable) {
+            return (MultiRunnable) delegate;
+        }
         return new MultiRunnable(delegate);
     }
 

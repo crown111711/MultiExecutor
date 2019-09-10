@@ -35,7 +35,7 @@ public class MultiExecutor {
                 if (parent.getQueue().size() > 0 || parent.getActiveCount() >= parent.getCorePoolSize()) {
                     return false;
                 }
-                MultiRunnable rejectedMonitorRunnable = MultiRunnable.getMultiRunnable(runnable);
+                MultiRunnable rejectedMonitorRunnable = MultiRunnable.get(runnable);
                 parent.execute(rejectedMonitorRunnable);
                 return !rejectedMonitorRunnable.isRejected();
             }));
