@@ -51,6 +51,10 @@ public class MultiExecutor {
             counter.incrementAndGet();
             return;
         }
+        RejectedExecutionHandler originRejectExecutionHandler = root.getValue().getRejectedExecutionHandler();
+        if (!(originRejectExecutionHandler instanceof RejectMarkExecutionHandler)) {
+            root.getValue().setRejectedExecutionHandler(new RejectMarkExecutionHandler(originRejectExecutionHandler));
+        }
         register(root.getValue(), root.childrenPools());
         root.getChildren().forEach(e -> registerTree0(e, counter));
     }
