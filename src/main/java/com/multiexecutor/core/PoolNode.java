@@ -1,5 +1,8 @@
 package com.multiexecutor.core;
 
+import com.multiexecutor.ProxyUtil;
+import com.multiexecutor.plugin.Interceptor;
+import com.multiexecutor.plugin.InterceptorChain;
 import com.multiexecutor.spi.Executable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,7 +48,10 @@ public class PoolNode implements Executable {
         this.value.execute(wrapperRunnable);
     }
 
-    public ExecutorService getExecutor() {
+    public ExecutorService getExecutor(boolean enableProxy) {
+        if (!enableProxy) {
+            return this.getValue();
+        }
         PoolTagHandler poolTagHandler = new PoolTagHandler();
         ExecutorService proxy = (ExecutorService) Proxy.newProxyInstance(null, new Class[]{ExecutorService.class}, poolTagHandler);
         return proxy;
@@ -64,5 +70,6 @@ public class PoolNode implements Executable {
             method.invoke(PoolNode.this.value, args);
             return null;
         }
+
     }
 }

@@ -54,7 +54,7 @@ public class Pool {
      * @param proxy
      */
     public ExecutorService borrowPool(String poolName, /*是否对pool进行代理*/boolean proxy) {
-        return Option.of(cachePools.get(poolName)).getOrElseThrow(() -> new RuntimeException("poolName" + poolName + "not exist")).getExecutor();
+        return Option.of(cachePools.get(poolName)).getOrElseThrow(() -> new RuntimeException("poolName" + poolName + "not exist")).getExecutor(proxy);
     }
 
     /**
